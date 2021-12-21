@@ -1,176 +1,247 @@
-﻿<title>ConcatenateBlobs | JavaScript</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body{
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        *{
+        -webkit-touch-callout: none; // for iOS
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        }
+        video, input {
+            display: block;
+            width: 100%;
+        }
 
-<h1>ConcatenateBlobs | JavaScript - <a href="https://github.com/muaz-khan/ConcatenateBlobs">Source Code</a></h1>
+        input {
+            width: 100%;
+        }
+        .tab-card{
+            background: #ECEFF1; margin: 10px; padding: 10px; border-radius: 10px
+        }
+        .frames{
+            display: grid; width: 100%;  grid-template-columns: 1fr 1fr; align-content: space-between
+        }
+        canvas{
+            width: calc(100% - 10px);
+            margin: 5px;
+            background: #B0BEC5;
+            height: calc(100vw / 2 * 9 /16 - 13px);
+        }
+        p{
+            margin:0 10px 5px;
+        }
+        #top{
+            position: fixed; top: 0; width: 100%; background: white; box-shadow: 5px 5px 5px #eee;padding-bottom: 5px;
+        }
 
-<blockquote>
-    You can record multiple blobs; then click "concatenateBlobs" button to concatenate all recorded blobs in single Blob. The resulting "single" Blob can be either played-back locally or pushed to server.
-</blockquote>
+        .tab-card input, input:focus {
+            background: transparent;
+            border: none;
+            outline: none;
+        }
 
-<style>
-button, select {
-    font-family: Myriad, Arial, Verdana;
-    font-weight: normal;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    border-bottom-left-radius: 3px;
-    padding: 4px 12px;
-    text-decoration: none;
-    color: rgb(27, 26, 26);
-    display: inline-block;
-    box-shadow: rgb(255, 255, 255) 1px 1px 0px 0px inset;
-    text-shadow: none;
-    background: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0.05, rgb(241, 241, 241)), to(rgb(230, 230, 230)));
-    font-size: 20px;
-    border: 1px solid red;
-    outline:none;
-}
-button:active, button:focus, select:active {
-    background: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(5%, rgb(221, 221, 221)), to(rgb(250, 250, 250)));
-    border: 1px solid rgb(142, 142, 142);
-}
-button[disabled], select[disabled] {
-    background: rgb(249, 249, 249);
-    border: 1px solid rgb(218, 207, 207);
-    color: rgb(197, 189, 189);
-}
-blockquote {
-    font-size: 20px;
-    color: rgb(172, 10, 10);
-    border: 1px solid rgb(172, 10, 10);
-    padding: 5px 10px;
-    border-radius: 5px;
-    margin: 9px 10px;
-}
-span {
-    border: 1px dotted red;
-    background: yellow;
-    padding: 0 5px;
-}
-</style>
 
-<hr />
-<button id="concatenateBlobs" disabled style="float:right;">concatenateBlobs</button>
-<button id="startRecording">startRecording</button>
-<button id="stopRecording" disabled>stopRecording</button>
-<p style="display:inline-block;">
-    <span id="output">0 blobs</span> recorded. To concatenate all, click right-side button.
-</p>
-<hr />
+    </style>
+</head>
+<body>
+<div id="top">
+    <video controls autoplay></video>
+    <input type="file" accept="video/*"/>
+    <div id="speed" style="display: none"></div>
+</div>
+<canvas style="
+width: 100%;
+position: fixed;
+background: transparent;
+height: 20%;
+margin: 0;
+top: 0; "
+></canvas>
+<div id="plus" style="position: fixed; top: 10%; left: 50%; display: none" s-d="a">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="margin-left: -11px; margin-top: -11px; fill: red"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" /></svg>
+</div>
+<div class="tab-card" id="f-tab-card" style="display: none">
+    <input placeholder="Yaha par kya step hai ?" />
 
-<select>
-    <option>Audio</option>
-    <option>Video</option>
-</select><br><br>
-<audio controls data-type="audio/wav"></audio>
+    <DIV class="frames">
+        <canvas class="st" onclick="st(event)"> </canvas>
+        <canvas class="et" onclick="et(event)"> </canvas>
+    </DIV>
+    <div>
+        <div style=" width: 40px; height: 30px; background: white" onclick="screenshot()"></div>
+    </div>
+</div>
+<div id="tabs">
+    <div class="tab-card">
+        <input placeholder="Yaha par kya step hai ?" />
 
-<script src="https://www.webrtc-experiment.com/RecordRTC.js" autoplay> </script>
-<script src="https://www.webrtc-experiment.com/ConcatenateBlobs.js" autoplay> </script>
+        <DIV class="frames">
+            <canvas class="st" onclick="st(event)"> </canvas>
+            <canvas class="et" onclick="et(event)"> </canvas>
+        </DIV>
+        <div>
+            <div style=" width: 40px; height: 30px; background: white" onclick="screenshot()"></div>
+        </div>
+    </div>
+</div>
+<button id="dld" onclick="downloadFile()" download="json.data">
+    Download Data
+</button>
+
+
 
 <script>
-var mediaElement = document.querySelector('audio');
+    (function localFileVideoPlayer() {
+        'use strict'
+        var URL = window.URL || window.webkitURL, startT, start, plus = document.getElementById('plus') , pl = plus.getBoundingClientRect().left, pt = plus.getBoundingClientRect().top
 
-var recordRTC;
-var allBlobs = [];
-var localMediaStream;
-document.querySelector('#startRecording').onclick = function() {
-    this.disabled = true;
-    document.querySelector('#concatenateBlobs').disabled = true;
-    
-    navigator.getUserMedia({
-        audio: mediaElement.getAttribute('data-type') == 'audio/wav',
-        video: mediaElement.getAttribute('data-type') == 'video/webm'
-    }, function(stream) {
-        localMediaStream = stream;
-        
-        mediaElement.src = URL.createObjectURL(stream);
-        mediaElement.play();
+        document.getElementById('tabs').style.marginTop = document.getElementById('top').getBoundingClientRect().height + 40 + "px"
+        var playSelectedFile = function () {
+            var file = this.files[0]
+            var videoNode = document.querySelector('video')
+            var fileURL = URL.createObjectURL(file)
+            videoNode.src = fileURL
+        }
+        console.log(pt , pl)
 
-        recordRTC = RecordRTC(stream, {
-            type: mediaElement.getAttribute('data-type') == 'audio/wav' ? 'audio' : 'video',
-            video: mediaElement
-        });
-        recordRTC.startRecording();
+        var inputNode = document.querySelector('input')
+        inputNode.addEventListener('change', playSelectedFile, false)
 
-        document.querySelector('#stopRecording').disabled = false;
-    }, function(error) {});
-};
+        let videoNode = document.querySelector('video'), spd = document.querySelector('#speed'), sx, sy, cp,
+            lastPx, lastPy
 
-document.querySelector('#stopRecording').onclick = function() {
-    this.disabled = true;
-    recordRTC.stopRecording(function() {
-        if(localMediaStream) localMediaStream.stop();
-        
-        allBlobs.push(recordRTC.getBlob());
-        
-        var totalBytes = 0;
-        allBlobs.forEach(function(blob) {
-            totalBytes += blob.size;
-        });
-        
-        output.innerHTML = allBlobs.length + ' blobs (total size: ' + bytesToSize(totalBytes) + ')';
-        
-        document.querySelector('#startRecording').disabled = false;
-        document.querySelector('#concatenateBlobs').disabled = false;
-    });
-};
+        function blurBack(){
+            document.querySelector('input').style.display = "none"
+            start = true
+            videoNode.pause()
+            spd.style.display = "block"
+            document.body.style.overflow = 'hidden'
+        }
 
-document.querySelector('#concatenateBlobs').onclick = function() {
-    this.disabled = true;
-    document.querySelector('#startRecording').disabled = true;
-    document.querySelector('#stopRecording').disabled = true;
-    
-    var parent = output.parentNode;
-    parent.innerHTML =  'Concatenating ' + allBlobs.length + ' blobs.';
-    ConcatenateBlobs(allBlobs, mediaElement.getAttribute('data-type'), function(resultingBlob) {
-        parent.innerHTML =  'Concatenated. Resulting blob size: <span>' + bytesToSize(resultingBlob.size) + '</span>. Playing-back locally in &lt;audio&gt; tag.';
-        
-        mediaElement.src = URL.createObjectURL(resultingBlob);
-        mediaElement.play();
-    });
-};
+        document.addEventListener('touchstart', e =>{
+            sx = e.changedTouches[0].clientX
+            sy = e.changedTouches[0].clientY
+            cp = sx
+            startT = setTimeout(function () {
+                blurBack()
+            }, 500)
+            lastPx = 0
+            lastPy = 0
 
-var output = document.querySelector('#output');
+        }, {passive:true});
+        document.addEventListener('touchmove', e => {
+            clearTimeout(startT)
+            if(!start) return
 
-// below function via: http://goo.gl/B3ae8c
-function bytesToSize(bytes) {
-    var k = 1000;
-    var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    if (bytes === 0) return '0 Bytes';
-    var i = parseInt(Math.floor(Math.log(bytes) / Math.log(k)), 10);
-    return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
-}
+            let x = e.changedTouches[0].clientX, cx = x - cp, cy = sy - e.changedTouches[0].clientY,
+                cr = cy > 10 ? Math.pow((1+ (cy/6)), 1.3) : cy < 10 ? 8/(Math.abs(cy)) : 1,
+                crl = cr.toFixed(2), m = crl*cx/10, ct = videoNode.currentTime,
+                lcx = cx - lastPx, lcy = cy - lastPy, doubleD = plus.getAttribute('s-d')
 
-document.querySelector('select').onchange = function() {
-    if(this.value == 'Video') {
-        var video = document.createElement('video');
-        video.setAttribute('data-type', 'video/webm');
-        video.setAttribute('controls', 'true');
-        mediaElement.parentNode.replaceChild(video, mediaElement);
-        mediaElement = video;
+            if(doubleD === "a"){
+                if(!isFinite(m)) return;
+                videoNode.currentTime = ct+m
+                spd.innerText  = "Speed :" + crl + " second and Time : " +  videoNode.currentTime.toFixed(2) + " seconds"
+                cp = e.changedTouches[0].clientX
+            } else {
+                console.log("its doble drage");
+                spd.innerText  = "Snapshot start point"
+                plus.style.top =   plus.offsetTop - lcy + "px"
+                plus.style.left =  plus.offsetLeft + lcx + "px"
+            }
+
+            lastPx = cx
+            lastPy = cy
+
+        }, {passive:true});
+        document.addEventListener('touchend', e => {
+            clearTimeout(startT)
+            start = null
+            document.querySelector("input").style.display = 'block'
+            spd.style.display = "none"
+            document.body.style.overflow = 'auto'
+        }, {passive:true});
+    })()
+
+    window.onbeforeunload = function() {
+        document.getElementById('dld').click()
+    };
+
+    function getFrame(canvas) {
+        let videoNode = document.querySelector('video'), ctx = canvas.getContext('2d'), rt = videoNode.currentTime
+        ctx.drawImage(videoNode, 0, 0, canvas.width, canvas.height)
+        canvas.setAttribute('t', rt)
+        videoNode.play()
     }
-    
-    if(this.value == 'Audio') {
-        var video = document.createElement('audio');
-        video.setAttribute('data-type', 'audio/wav');
-        video.setAttribute('controls', 'true');
-        mediaElement.parentNode.replaceChild(video, mediaElement);
-        mediaElement = video;
+
+    function st(e) {
+        getFrame(e.target)
     }
-};
+
+    function et(e) {
+        getFrame(e.target)
+        let clone = document.getElementById('f-tab-card').cloneNode(true), t = document.getElementById('tabs')
+        clone.style.display = 'block'
+        if (!t.firstElementChild.firstElementChild.nextElementSibling.firstElementChild.getAttribute('t')) return
+        t.insertBefore(clone, t.firstElementChild)
+    }
+
+    function downloadFile() {
+        let tabs = document.getElementById('tabs'), items = tabs.querySelectorAll('.tab-card'), all = []
+        console.log(items, tabs)
+        items.forEach(i => {
+            console.log(i.querySelector('input'))
+            if (!i.firstElementChild.nextElementSibling.firstElementChild.getAttribute('t')) return
+            all.push({
+                t: i.querySelector("input").value,
+                s: i.firstElementChild.nextElementSibling.firstElementChild.getAttribute('t'),
+                e: i.firstElementChild.nextElementSibling.firstElementChild.getAttribute('t'),
+            })
+        })
+        console.log(all)
+        if(all.length < 1) return
+        let data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(all)), a = document.createElement('a')
+        console.log(data)
+        a.setAttribute('href', 'data: '+ data)
+        a.setAttribute('download', 'data.json')
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+    }
+
+    function screenshot() {
+        let a = document.getElementById('plus'), atr = a.getAttribute('s-d'), vid = document.querySelector('video')
+        if(atr === "a"){
+            console.log(atr, 'a')
+            a.setAttribute('s-d', 'b')
+            vid.pause()
+            vid.removeAttribute('controls')
+            document.getElementById('plus').style.display = 'block'
+        } if(atr === "b") {
+            console.log(atr, 'b')
+
+            a.setAttribute('s-d', 'c')
+        } if(atr === "c"){
+            console.log(atr, 'c')
+            a.setAttribute('s-d', 'a')
+            vid.play()
+            vid.setAttribute('controls', 'controls')
+            document.getElementById('plus').style.display = 'none'
+        }
+    }
+
 </script>
-
-<h2>How to use?</h2>
-<pre>
-// https://www.webrtc-experiment.com/ConcatenateBlobs.js
-// or: npm install concatenateblobs
-
-// 2nd argument is type of "resulting-blob"
-ConcatenateBlobs(<span>[arrayOfBlobs]</span>, <span>'audio/wav'</span>, function(<span>resultingBlob</span>) {
-
-    POST_to_Server(<span>resultingBlob</span>);
-    
-    // or preview locally
-    localVideo.src = URL.createObjectURL(<span>resultingBlob</span>);
-});
-</pre>
+</body>
+</html>
