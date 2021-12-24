@@ -207,7 +207,7 @@ top: 0; "
             all.push({
                 t: i.querySelector("input").value,
                 s: i.firstElementChild.nextElementSibling.firstElementChild.getAttribute('t'),
-                e: i.firstElementChild.nextElementSibling.firstElementChild.getAttribute('t'),
+                e: i.firstElementChild.nextElementSibling.lastElementChild.getAttribute('t'),
             })
         })
         console.log(all)
@@ -231,7 +231,6 @@ top: 0; "
             document.getElementById('plus').style.display = 'block'
         } if(atr === "b") {
             console.log(atr, 'b')
-
             a.setAttribute('s-d', 'c')
         } if(atr === "c"){
             console.log(atr, 'c')
